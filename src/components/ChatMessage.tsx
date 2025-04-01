@@ -3,7 +3,9 @@ import React from "react";
 import { cn } from "@/lib/utils";
 import { Message, UserMode } from "@/types/chat";
 import PasswordStrengthIndicator from "@/components/PasswordStrengthIndicator";
-import { User, Bot } from "lucide-react";
+import { User, Bot, Copy, Check } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 interface ChatMessageProps {
   message: Message;
@@ -12,6 +14,21 @@ interface ChatMessageProps {
 
 const ChatMessage = ({ message, userMode }: ChatMessageProps) => {
   const isUser = message.role === "user";
+  const { toast } = useToast();
+  const [copied, setCopied] = React.useState(false);
+  
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    toast({
+      title: "Copied!",
+      description: "Password copied to clipboard",
+    });
+    
+    setTimeout(() => {
+      setCopied(false);
+    }, 2000);
+  };
   
   return (
     <div
@@ -40,6 +57,25 @@ const ChatMessage = ({ message, userMode }: ChatMessageProps) => {
           ) : (
             <>
               <p className="whitespace-pre-wrap">{message.content}</p>
+              
+              {message.analysis?.suggestedPassword && (
+                <div className="mt-3 p-2 bg-accent/50 rounded-md flex items-center justify-between gap-2">
+                  <code className="font-mono text-sm">{message.analysis.suggestedPassword}</code>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-8"
+                    onClick={() => copyToClipboard(message.analysis.suggestedPassword as string)}
+                  >
+                    {copied ? (
+                      <Check className="h-3.5 w-3.5 text-green-500" />
+                    ) : (
+                      <Copy className="h-3.5 w-3.5" />
+                    )}
+                  </Button>
+                </div>
+              )}
+              
               {message.analysis && (
                 <div className="mt-3">
                   <PasswordStrengthIndicator analysis={message.analysis} userMode={userMode} />

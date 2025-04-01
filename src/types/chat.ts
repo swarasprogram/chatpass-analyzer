@@ -11,6 +11,7 @@ export interface PasswordAnalysis {
   score: number;
   message: string;
   feedback: FeedbackItem[];
+  suggestedPassword?: string; // Add this field for suggested password
 }
 
 export interface Message {

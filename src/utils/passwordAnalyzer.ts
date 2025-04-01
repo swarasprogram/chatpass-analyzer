@@ -1,6 +1,45 @@
 
 import { PasswordAnalysis, UserMode, FeedbackItem } from "@/types/chat";
 
+// Function to generate a random password
+function generatePassword(userMode: UserMode): string {
+  const length = userMode === "business" ? 16 : 12;
+  const uppercaseChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const lowercaseChars = "abcdefghijklmnopqrstuvwxyz";
+  const numberChars = "0123456789";
+  const specialChars = "!@#$%^&*()_+-=[]{}|;:,.<>?";
+  
+  let allChars = uppercaseChars + lowercaseChars + numberChars;
+  if (userMode === "business" || Math.random() > 0.3) {
+    allChars += specialChars;
+  }
+  
+  let password = "";
+  
+  // Ensure at least one character from each required category
+  password += uppercaseChars.charAt(Math.floor(Math.random() * uppercaseChars.length));
+  password += lowercaseChars.charAt(Math.floor(Math.random() * lowercaseChars.length));
+  password += numberChars.charAt(Math.floor(Math.random() * numberChars.length));
+  
+  if (userMode === "business" || Math.random() > 0.3) {
+    password += specialChars.charAt(Math.floor(Math.random() * specialChars.length));
+  }
+  
+  // Fill the rest randomly
+  for (let i = password.length; i < length; i++) {
+    const randomChar = allChars.charAt(Math.floor(Math.random() * allChars.length));
+    // Avoid repeating the same character three times in a row
+    if (password.slice(-2) !== randomChar.repeat(2)) {
+      password += randomChar;
+    } else {
+      i--; // Try again
+    }
+  }
+  
+  // Shuffle the password characters to make it more random
+  return password.split('').sort(() => 0.5 - Math.random()).join('');
+}
+
 export async function analyzePassword(
   password: string,
   userMode: UserMode
@@ -143,10 +182,17 @@ export async function analyzePassword(
   } else {
     message += "\n\nFor personal accounts, consider using a password manager to help create and store unique passwords for all your accounts.";
   }
+  
+  // Generate a suggested password
+  const suggestedPassword = generatePassword(userMode);
+
+  // Add suggestion message
+  message += `\n\nHere's a suggested strong password you can use: ${suggestedPassword}`;
 
   return {
     score,
     message,
-    feedback
+    feedback,
+    suggestedPassword
   };
 }
